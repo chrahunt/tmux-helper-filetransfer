@@ -9,12 +9,20 @@ from typing import List
 import uu
 
 
+class LazyStr:
+    def __init__(self, f):
+        self._f = f
+
+    def __str__(self):
+        return self._f()
+
+
 class DataProtocol(asyncio.SubprocessProtocol):
     def __init__(self, exit_future):
         self._exit_future = exit_future
 
     def pipe_data_received(self, fd, data):
-        logging.debug('Data received (%d): %s', fd, data)
+        logging.debug('Data received (%d): "%s"', fd, data)
 
     def pipe_connection_lost(self, fd, exc):
         logging.warning('Connection lost (%d) %s', fd, exc)
@@ -62,8 +70,10 @@ class Tmux:
         await self._exit_future
         logging.debug('Post-future')
 
-    def _tmux_encode(self, s):
-        escaped = (s
+    @staticmethod
+    def _tmux_encode(s):
+        escaped = (
+            s
             .replace('\\', '\\\\')
             .replace('\n', '\\n')
             .replace('\t', '\\t')
@@ -78,10 +88,11 @@ class Tmux:
             self._write_transport.write(b' -l')
         self._write_transport.write(b' "')
         for d in args:
-            encoded = self._tmux_encode(d)
-            logging.debug('Writing %s', encoded.decode('utf-8'))
+            encoded = Tmux._tmux_encode(d)
+            logging.debug(
+                'Writing "%s"', LazyStr(lambda: encoded.decode('utf-8')))
             self._write_transport.write(encoded)
-        # submit command
+        # Submit command.
         self._write_transport.write(b'"\n')
 
 
@@ -104,15 +115,19 @@ class EncodedFiles:
         buf.seek(0)
         return gzip.compress(buf.read())
 
+    def save(self, path):
+        path.write_bytes(self._make_tgz())
+
     def uu_encoded(self):
         logging.debug('EncodedFiles.uu_encoded()')
         buf = io.BytesIO(self._make_tgz())
-        outbuf = io.BytesIO()
-        uu.encode(buf, outbuf)
-        outbuf.seek(0)
-        return outbuf.read().decode('ascii').splitlines()
+        out_buf = io.BytesIO()
+        uu.encode(buf, out_buf)
+        out_buf.seek(0)
+        return out_buf.read().decode('ascii').splitlines()
 
-    def uu_command(self):
+    @staticmethod
+    def uu_command():
         logging.debug('EncodedFiles.uu_command()')
         decode_pipeline = [
             'uudecode',

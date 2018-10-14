@@ -22,17 +22,17 @@ setup(
             'tmux-helper-filetransfer=tmux_helper_filetransfer.cli:main'
         ]
     },
+    extra_requires={
+        'dev': [
+            'twine >= 1.11.0',
+        ]
+    },
     license='MIT',
     long_description=long_description_src.read_text(encoding='utf-8'),
     long_description_content_type='text/markdown',
     name='tmux-helper-filetransfer',
     packages=find_packages(),
     python_requires='~=3.6',
-    setup_requires=[
-        'setuptools >=38.6',
-        'wheel >= 0.31.0',
-        'twine >= 1.11.0',
-    ],
     url='https://github.com/chrahunt/tmux-helper-filetransfer',
     version='0.1.0',
 )

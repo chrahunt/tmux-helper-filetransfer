@@ -46,7 +46,7 @@ def main():
     else:
         logging.basicConfig(level=logging.ERROR)
 
-    def print_exc(loop, context):
+    def print_exc(_loop, context):
         logging.error('Error in event loop: %s', context['message'])
 
     asyncio.get_event_loop().set_exception_handler(print_exc)

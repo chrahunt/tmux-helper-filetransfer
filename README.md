@@ -52,7 +52,7 @@ Some or all of these may be possible to overcome.
 # Releasing
 
 ```
-python setup.py sdist
+python setup.py sdist bdist_wheel
 # for testing
 twine upload --repository testpypi dist/*
 twine upload --repository pypi dist/*
